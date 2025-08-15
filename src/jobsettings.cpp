@@ -1,8 +1,9 @@
 #include "jobsettings.h"
-JobSettings::JobSettings()
+JobSettings::JobSettings(int argc, char** argv)
 {
     input_file_name = "file.pdb";
     debug_output = false;
+    ParseArgs(argc, argv);
 }
 
 JobSettings::~JobSettings()

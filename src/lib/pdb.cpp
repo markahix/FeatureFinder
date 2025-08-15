@@ -82,9 +82,9 @@ void PDBResidue::CheckForErrors()
     if (unique_names.size() != tmp_atom_names.size())
     {
         std::cout << "ERROR: Residue " << resid << " may have non-unique atom names." << std::endl;
-    }
-    
+    }    
 }
+
 void PDBResidue::set_resid(int new_resid)
 {
     resid = new_resid;
@@ -122,7 +122,6 @@ PDBResidue::~PDBResidue()
 
 }
 
-
 // CONSTRUCTOR
 PDB::PDB(std::string filename)
 {
@@ -133,7 +132,6 @@ PDB::PDB(std::string filename)
 // DESTRUCTOR
 PDB::~PDB()
 {
-
 }
 
 void PDB::ReadPDB()
@@ -182,5 +180,4 @@ void PDB::ReadPDB()
             first_atom_found = true;
         }
     }
-
 }

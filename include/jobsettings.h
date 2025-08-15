@@ -6,15 +6,17 @@
 
 class JobSettings
 {
+    private:
+        void ParseArgs(int argc, char **argv);
     public:
         // Class Variables
         fs::path input_file_name;
         bool debug_output;
 
         // Class Functions
-        JobSettings();
+        JobSettings(int argc, char **argv);
         ~JobSettings();
-        void ParseArgs(int argc, char **argv);
+        
 };
 
 #endif

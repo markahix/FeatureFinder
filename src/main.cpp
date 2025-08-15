@@ -2,20 +2,26 @@
 #include "jobsettings.h"
 #include "fileparsers.h"
 
-namespace fs = std::experimental::filesystem;
+// First, identify type of input file
+// - PDB:  identify proteins, nucleics, substrates, etc.
+// - XYZ:  identify molecules based on connectivities, then if able, identify known substructures including amino acids, nucleic acids, etc.
+// - MOL2: can't really think of anything needing to be done here if we've already got the MOL2 file...
+// - prmtop:  identify proteins, nucleics, substrates, etc.
 
 int main(int argc, char **argv)
 {
     // Initialize variables
-    JobSettings settings;
+    JobSettings settings(argc,argv);
 
     // Obtain filename from command line
-    settings.ParseArgs(argc,argv);
     std::cout << "Current input file: " << settings.input_file_name << std::endl;
 
     // Validate file is openable for reading and not empty.
-    utils::ExitOnFailure(utils::file_exists_and_can_be_opened_and_is_not_empty(settings.input_file_name), "Input file errors were encountered.  Terminating FeatureFinder.");
-
+    if (!validate_file(settings.input_file_name))
+    {
+        error_log("Input file errors were encountered.  Terminating FeatureFinder.",1);
+    }
+    
     // identify file type (prmtop, pdb, xyz, etc.)   
     MolecularFile mol_file(settings.input_file_name);
     mol_file.ParseFile();

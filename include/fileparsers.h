@@ -7,11 +7,7 @@ class MolecularFile
 {
     private:
         std::string input_file;
-        int filetype;
-        void ParsePDB();
-        void ParseXYZ();
-        void ParsePRMTOP();
-        void ParseMOL2();
+        std::string filetype;
 
     public:
         MolecularFile(std::string filename);
