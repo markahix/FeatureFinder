@@ -2,7 +2,7 @@
 #define PRMTOP_H
 #include "utilities.h"
 
-void ParsePRMTOP();
+void ParsePRMTOP(std::string input_file);
 
 
 #endif

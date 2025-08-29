@@ -21,7 +21,7 @@ void debug_log(std::string message)
 void splash_screen()
 {
     std::cout << "###########################" << std::endl;
-    std::cout << "# AGIMUS is in control... #" << std::endl;
+    std::cout << "#      FeatureFinder      #" << std::endl;
     std::cout << "###########################" << std::endl;
 }
 std::string GetTimeAndDate()

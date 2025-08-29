@@ -3,7 +3,7 @@
 
 #include "utilities.h"
 
-void ParsePDB();
+void ParsePDB(std::string input_file);
 
 /*
 PDB can be divided up into several pieces:
@@ -103,101 +103,7 @@ struct PDBFile
     std::vector<Molecule> molecules;
 };
 
-void parse_pdb_line(std::string line, Molecule &molecule)
-{
-/*
-ATOM      1  N   HIS A   1      49.668  24.248  10.436  1.00 25.00           N
-......  ATOM/HETATM flag(1-6)
-      ..... atom number (7-11)
-           .
-            .... atom name (13-16)
-                . alternate location indicator
-                 ... residue name (18-20)
-                    . 
-                     . chain identifier (22)
-                      .... residue sequence number (23-26)
-                          . code for insertion of residues
-                           ...
-                              ........ x coords (31-38)
-                                      ........ y coords (39-46)
-                                              ........ z coords (47-54)
-                                                      ...... occupancy (55-60)
-                                                            ...... temperature factor (61-66)
-                                                                  .......
-                                                                         ... segment identifier (73-76)
-                                                                            .. elemental symbol (77-78)
-                                                                              .. formal charge (79-80)
-*/
-    std::string atom_number  = line.substr(6 , 5);
-    std::string atom_name    = line.substr(12, 4);
-    std::string residue_name = line.substr(17, 3);
-    std::string chain_id     = line.substr(21, 1);
-    std::string residue_num  = line.substr(22, 4);
-    std::string x_coords     = line.substr(30, 8);
-    std::string y_coords     = line.substr(38, 8);
-    std::string z_coords     = line.substr(46, 8);
-    std::string occupancy    = line.substr(54, 6);
-    std::string temperature  = line.substr(60, 6);
-    std::string segment_id   = line.substr(72, 4);
-    std::string element      = line.substr(76, 2);
-    std::string charge       = line.substr(78, 2);
-    // Assume "HETATM" or "ATOM  " lines only.
-    // Parse line according to standard PDB formatting
-    // If values don't align, throw an error and quit.
-    // lines MUST have:  Residue name, residue number, atom name, x, y, z, element.
-    // Useful:  chainID as well.
-    bool BAD_DATA = false;
-    if (is_empty(residue_name))
-    {
-        BAD_DATA = true;
-    }
-    if (is_empty(residue_num))
-    {
-        BAD_DATA = true;
-    }
-    if (is_empty(atom_name))
-    {
-        BAD_DATA = true;
-    }
-    if (is_empty(x_coords))
-    {
-        BAD_DATA = true;
-    }
-    if (is_empty(y_coords))
-    {
-        BAD_DATA = true;
-    }
-    if (is_empty(z_coords))
-    {
-        BAD_DATA = true;
-    }
-    if (is_empty(element))
-    {
-        BAD_DATA = true;
-    }
-    if (BAD_DATA)
-    {
-        error_log("Unable to parse line: " + line, 1);
-    }
-
-    if (is_empty(chain_id))
-    {
-        chain_id = "A";
-    }
-    // If we use "chainID.resnum(leading zeros?).resname" as a unique identifier, then the Molecule level can have this as a map instead of a vector, and then we need only store the head, tail, and atoms vector...
-    // Generate Residue Key
-    std::stringstream buffer;
-    buffer.str("");
-    buffer << chain_id << "." << std::setw(4) << std::setfill('0') << stoi(residue_num) << "." << residue_name;
-    std::string reskey = buffer.str();
-    if (molecule.residues.count(reskey) == 0)
-    {
-        molecule.residues[reskey] = {};
-    }
-    Atom new_atom {.number=stoi(atom_number), .x=stof(x_coords), .y=stof(y_coords), .z=stof(z_coords), .element = element, .atom_name = atom_name};
-    molecule.residues[reskey].atoms.push_back(new_atom);
-}
-
+void parse_pdb_line(std::string line, Molecule &molecule);
 
 class PDBAtom
 {
