@@ -2,7 +2,7 @@
 #define PDB_H
 
 #include "utilities.h"
-
+#include "chemistry.h"
 void ParsePDB(std::string input_file);
 
 /*
@@ -74,16 +74,6 @@ For non-matching structures, attempt to see if another match would be better and
 For unknown structures, extract and assign an AutoParams job?
 
 */
-
-struct Atom
-{
-    int number;
-    double x;
-    double y;
-    double z;
-    std::string element;
-    std::string atom_name;
-};
 
 struct Residue
 {

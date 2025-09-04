@@ -1,5 +1,6 @@
 #include "pdb.h"
-
+#include "chemistry.h"
+#include "graph.h"
 
 // PDBAtom Functions
 PDBAtom::PDBAtom(std::string line)
@@ -283,7 +284,7 @@ ATOM      1  N   HIS A   1      49.668  24.248  10.436  1.00 25.00           N
     {
         molecule.residues[reskey] = {};
     }
-    Atom new_atom {.number=stoi(atom_number), .x=stof(x_coords), .y=stof(y_coords), .z=stof(z_coords), .element = element, .atom_name = atom_name};
+    Atom new_atom {stoi(atom_number), stof(x_coords), stof(y_coords), stof(z_coords), get_atomic_number(element)};
     molecule.residues[reskey].atoms.push_back(new_atom);
 }
 //OneLetterAminoAcids
@@ -308,7 +309,7 @@ std::map<std::string,std::string> OLNA =   {{"DA3","A"},{"DA ","A"},{"DA5","A"},
 std::vector<std::string> KnownMetalIons = {"ZN "};
 
 // Counterions
-std::vector<std::string> KnownCounterions = {"ZN "};
+std::vector<std::string> KnownCounterions = {"CL-","K+"};
 
 // Known Solvents
 std::vector<std::string> KnownSolvents = {"WAT"};
@@ -377,7 +378,6 @@ bool is_metal_ions(std::vector<std::string> residue_keys)
         return true;
     }
     return false;
-
 }
 
 bool is_mostly_nucleic(std::vector<std::string> residue_keys)
@@ -423,6 +423,16 @@ bool is_mostly_protein(std::vector<std::string> residue_keys)
     return false;
 }
 
+bool is_unrecognized_molecule(std::string residue_name)
+{
+    if (is_solvents({residue_name})){return false;}
+    if (is_counterions({residue_name})){return false;}
+    if (is_metal_ions({residue_name})){return false;}
+    if (is_mostly_nucleic({residue_name})){return false;}
+    if (is_mostly_protein({residue_name})){return false;}
+    return true;
+}
+
 std::string RawProteinSequence(std::vector<std::string> residue_keys)
 {
     std::string sequence = "";
@@ -458,10 +468,12 @@ void Protein_Sequence_to_FASTA(std::vector<std::string> residue_keys, int molecu
 {
     int n_res = 1;
     int n_mol = 0;
+    int total_charge = GetProteinTotalCharge(residue_keys);
     std::string prev_chain = residue_keys[0].substr(0,residue_keys[0].find_first_of('.'));
     std::stringstream fasta;
     fasta.str("");
     fasta << "Protein sequence detected." << std::endl;
+    fasta << "Total charge: " << total_charge << std::endl;
     fasta << "Chain ID: " << prev_chain << std::endl;
     fasta << std::setw(4) << std::right << n_res << "  ";
     for (std::string reskey : residue_keys)
@@ -479,9 +491,13 @@ void Protein_Sequence_to_FASTA(std::vector<std::string> residue_keys, int molecu
         std::string resname = reskey.substr(reskey.find_last_of('.')+1,3);
         if (OLAA.count(resname) == 0)
         {
-            OLAA[resname]="_";
+            fasta << "_";
         }
-        fasta << OLAA[resname];
+        else
+        {
+            fasta << OLAA[resname];
+        }
+        
         if (n_res%10 == 0)
         {
             fasta << " ";
@@ -527,9 +543,13 @@ void Nucleic_Sequence_to_FASTA(std::vector<std::string> residue_keys, int molecu
         std::string resname = reskey.substr(reskey.find_last_of('.')+1,reskey.size() - reskey.find_last_of('.') - 1);
         if (OLNA.count(resname) == 0)
         {
-            OLNA[resname]="_";
+            fasta << "_";
         }
-        fasta << OLNA[resname];
+        else
+        {
+            fasta << OLNA[resname];
+        }
+        
         if (n_res%10 == 0)
         {
             fasta << " ";
@@ -682,26 +702,378 @@ void SequenceMolecule(std::vector<std::string> residue_keys, int molecule_number
         }
 }
 
-void ParsePDB(std::string input_file)
+std::vector<Atom> GetAtomsFromMol(std::vector<std::string> mol_chunk)
 {
-    std::string def_chain_id = "A";
-    std::vector<std::vector<std::string>> molecule_chunks = PDBFile_to_Molecule_Sections(input_file);
-    // Handling for Multiple Molecules
-    if (molecule_chunks.size() > 1)
+    std::vector<Atom> atoms = {};
+    for (std::string line : mol_chunk)
     {
-        for (unsigned int i = 0; i < molecule_chunks.size(); i ++)
+        Atom tmp={stoi(line.substr(6 , 5)),stof(line.substr(30, 8)), stof(line.substr(38, 8)), stof(line.substr(46, 8)), get_atomic_number(line.substr(76, 2))};
+        atoms.push_back(tmp);
+    }
+    return atoms;
+}
+
+
+
+GraphNetwork GetAtomGraphPDB(std::vector<std::string> mol_chunk)
+{
+    std::vector<Atom> atoms = GetAtomsFromMol(mol_chunk);
+    std::vector<Bond> bonds = GetBondsFromAtoms(atoms);
+    std::vector<Angle> angles = {};
+    std::vector<Torsion> torsions = {};
+    std::vector<Dihedral> dihedrals = {};
+    GraphNetwork mol_graph;
+
+
+}
+
+std::string get_head_connected_to(std::vector<std::string> mol_chunk, std::string reskey)
+{
+    // std::string target_resname = reskey.substr(reskey.find_last_of('.')+1,reskey.size() - reskey.find_last_of('.') - 1);
+    int target_resnum = stoi(reskey.substr(reskey.find_first_of('.')+1, reskey.find_last_of('.') - reskey.find_first_of('.') - 1));
+    int head_resnum = target_resnum - 1;
+    std::vector<std::string> target_resatoms;
+    std::vector<std::string> head_resatoms;
+    for (std::string line : mol_chunk)
+    {
+        int residue_num  = stoi(line.substr(22, 4));
+        if (residue_num == target_resnum)
         {
-            std::vector<std::string> residue_keys = GetReskeysFromMolecule(molecule_chunks[i], def_chain_id);
-            SequenceMolecule(residue_keys, i+1);
+            target_resatoms.push_back(line);
+        }
+        else if (residue_num == head_resnum)
+        {
+            head_resatoms.push_back(line);
         }
     }
-    // Handling for single-molecule
-    else
+    double min_dist = 2.0;
+    std::string min_dist_a_name = "";
+    for (std::string target_line : target_resatoms)
     {
-        // Get list of residues from the single molecule.
-        // If the list of residues is just one residue, treat this as a small-molecule feature examination.
-        // otherwise, sequence as normal.
+        double x_a = stof(target_line.substr(30, 8));
+        double y_a = stof(target_line.substr(38, 8));
+        double z_a = stof(target_line.substr(46, 8));
+        for (std::string head_line : head_resatoms)
+        {
+            std::string atomname = head_line.substr(12, 4);;
+            double x_b = stof(head_line.substr(30, 8));
+            double y_b = stof(head_line.substr(38, 8));
+            double z_b = stof(head_line.substr(46, 8));
+            double bond_dist = sqrt( pow(x_b - x_a, 2) + pow(y_b - y_a, 2) + pow(z_b - z_a, 2) );
+            if (bond_dist < min_dist)
+            {
+                min_dist = bond_dist;
+                min_dist_a_name = atomname;
+            }
+        }
+    }
+    return min_dist_a_name;
+}
 
+std::string get_tail_connected_to(std::vector<std::string> mol_chunk, std::string reskey)
+{
+    // std::string target_resname = reskey.substr(reskey.find_last_of('.')+1,reskey.size() - reskey.find_last_of('.') - 1);
+    int target_resnum = stoi(reskey.substr(reskey.find_first_of('.')+1, reskey.find_last_of('.') - reskey.find_first_of('.') - 1));
+    int head_resnum = target_resnum + 1;
+    std::vector<std::string> target_resatoms;
+    std::vector<std::string> head_resatoms;
+    for (std::string line : mol_chunk)
+    {
+        int residue_num  = stoi(line.substr(22, 4));
+        if (residue_num == target_resnum)
+        {
+            target_resatoms.push_back(line);
+        }
+        else if (residue_num == head_resnum)
+        {
+            head_resatoms.push_back(line);
+        }
+    }
+    double min_dist = 2.0;
+    std::string min_dist_a_name = "";
+    for (std::string target_line : target_resatoms)
+    {
+        double x_a = stof(target_line.substr(30, 8));
+        double y_a = stof(target_line.substr(38, 8));
+        double z_a = stof(target_line.substr(46, 8));
+        for (std::string head_line : head_resatoms)
+        {
+            std::string atomname = head_line.substr(12, 4);;
+            double x_b = stof(head_line.substr(30, 8));
+            double y_b = stof(head_line.substr(38, 8));
+            double z_b = stof(head_line.substr(46, 8));
+            double bond_dist = sqrt( pow(x_b - x_a, 2) + pow(y_b - y_a, 2) + pow(z_b - z_a, 2) );
+            if (bond_dist < min_dist)
+            {
+                min_dist = bond_dist;
+                min_dist_a_name = atomname;
+            }
+        }
+    }
+    return min_dist_a_name;
+}
+
+std::string MakeSingleMoleculePDB(std::vector<std::string> mol_chunk, std::string reskey, std::string def_chain_id,std::string head_atom, std::string tail_atom)
+{
+    int i = 1;
+    std::stringstream buffer;
+    std::string filename;
+    buffer.str("");
+    buffer << reskey.substr(reskey.find_last_of('.')+1,reskey.size()-reskey.find_last_of('.')-1);
+    buffer << "." << std::setw(3) << std::setfill('0') << i << ".pdb";
+    filename = buffer.str();
+    
+    while (fs::exists(filename))
+    {
+        i++;
+        buffer.str("");
+        buffer << reskey.substr(reskey.find_last_of('.')+1,reskey.size()-reskey.find_last_of('.')-1);
+        buffer << "." << std::setw(3) << std::setfill('0') << i << ".pdb";
+        filename = buffer.str();
+    }
+
+    std::ofstream ofile(filename,std::ios::out);
+    for (std::string line : mol_chunk)
+    {   
+        std::string tmpkey = reskey_from_pdbline(line, def_chain_id);
+        if (tmpkey != reskey)
+        {
+            continue;
+        }
+        ofile << line << std::endl;
+    }
+    //Need to add dummy atoms to given head- and tail- atoms
+    int resnum = stoi(reskey.substr(reskey.find_first_of('.')+1, reskey.find_last_of('.') - reskey.find_first_of('.') - 1));
+    std::string resname = reskey.substr(reskey.find_last_of('.')+1, reskey.size() - reskey.find_last_of('.') - 1);
+    if (head_atom != "")
+    {
+        std::string head_connect = get_head_connected_to(mol_chunk,reskey);
+        int head_resnum = resnum - 1;
+        for (std::string line : mol_chunk)
+        {
+            if (stoi(line.substr(22,4)) != head_resnum)
+            {
+                continue;
+            }
+            std::string atom_name = line.substr(12, 4);
+            if (atom_name == head_connect)
+            {
+                std::stringstream resnum_replace;
+                resnum_replace.str("");
+                resnum_replace << std::setw(4) << resnum;
+                std::string newline = line.replace(12, 4, "HDAH"); //change atom name
+                newline.replace(76, 2, " H"); //change element name
+                newline.replace(22, 4, resnum_replace.str()); // change residue number
+                newline.replace(17, 3, resname); //change residue name
+
+                ofile << newline << std::endl;
+                break;
+            }
+        }
+        // calculate location for dummy atom attached to head atom.
+        // get x,y,z coords of all other atoms bonded to head atom, calculate "average position".
+        // calculate vector from average to head_atom
+        // calculate coordinates along that vector from head_atom to ~0.8A away for dummy H (HDAH atomname)
+    }
+    if (tail_atom != "")
+    {
+        std::string tail_connect = get_tail_connected_to(mol_chunk,reskey);
+        int head_resnum = resnum + 1;
+        for (std::string line : mol_chunk)
+        {
+            if (stoi(line.substr(22,4)) != head_resnum)
+            {
+                continue;
+            }
+            std::string atom_name = line.substr(12, 4);
+            if (atom_name == tail_connect)
+            {
+                std::stringstream resnum_replace;
+                resnum_replace.str("");
+                resnum_replace << std::setw(4) << resnum;
+                std::string newline = line.replace(12,4,"HDAT"); //change atom name
+                newline.replace(76, 2," H"); //change element name
+                newline.replace(22, 4, resnum_replace.str()); // change residue number
+                newline.replace(17, 3, resname); //change residue name
+                ofile << newline << std::endl;
+                break;
+            }
+        }
+        // calculate location for dummy atom attached to tail atom.
+        // get x,y,z coords of all other atoms bonded to tail atom, calculate "average position".
+        // calculate vector from average to tail atom
+        // calculate coordinates along that vector from tail atom to ~0.8A away for dummy H (HDAT atomname)
+    }
+    ofile.close();
+    return filename;
+}
+
+void AGIMUSTask(std::string single_file, std::string molecule_type)
+{
+
+}
+
+std::string get_head_connection(std::vector<std::string> mol_chunk, std::string reskey)
+{
+    // std::string target_resname = reskey.substr(reskey.find_last_of('.')+1,reskey.size() - reskey.find_last_of('.') - 1);
+    int target_resnum = stoi(reskey.substr(reskey.find_first_of('.') + 1, reskey.find_last_of('.') - reskey.find_first_of('.') - 1));
+    int head_resnum = target_resnum - 1;
+    std::vector<std::string> target_resatoms;
+    std::vector<std::string> head_resatoms;
+    for (std::string line : mol_chunk)
+    {
+        int residue_num  = stoi(line.substr(22, 4));
+        if (residue_num == target_resnum)
+        {
+            target_resatoms.push_back(line);
+        }
+        else if (residue_num == head_resnum)
+        {
+            head_resatoms.push_back(line);
+        }
+    }
+    double min_dist = 2.0;
+    std::string min_dist_a_name = "";
+    for (std::string target_line : target_resatoms)
+    {
+        std::string atomname = target_line.substr(12, 4);
+        double x_a = stof(target_line.substr(30, 8));
+        double y_a = stof(target_line.substr(38, 8));
+        double z_a = stof(target_line.substr(46, 8));
+        for (std::string head_line : head_resatoms)
+        {
+            double x_b = stof(head_line.substr(30, 8));
+            double y_b = stof(head_line.substr(38, 8));
+            double z_b = stof(head_line.substr(46, 8));
+            double bond_dist = sqrt( pow(x_b - x_a, 2) + pow(y_b - y_a, 2) + pow(z_b - z_a, 2) );
+            if (bond_dist < min_dist)
+            {
+                min_dist = bond_dist;
+                min_dist_a_name = atomname;
+            }
+        }
+    }
+    return min_dist_a_name;
+}
+
+std::string get_tail_connection(std::vector<std::string> mol_chunk, std::string reskey)
+{
+    // std::string target_resname = reskey.substr(reskey.find_last_of('.')+1,reskey.size() - reskey.find_last_of('.') - 1);
+    int target_resnum = stoi(reskey.substr(reskey.find_first_of('.')+1, reskey.find_last_of('.') - reskey.find_first_of('.') - 1));
+    int head_resnum = target_resnum + 1;
+    std::vector<std::string> target_resatoms;
+    std::vector<std::string> head_resatoms;
+    for (std::string line : mol_chunk)
+    {
+        int residue_num  = stoi(line.substr(22, 4));
+        if (residue_num == target_resnum)
+        {
+            target_resatoms.push_back(line);
+        }
+        else if (residue_num == head_resnum)
+        {
+            head_resatoms.push_back(line);
+        }
+    }
+    double min_dist = 2.0;
+    std::string min_dist_a_name = "";
+    for (std::string target_line : target_resatoms)
+    {
+        std::string atomname = target_line.substr(12, 4);;
+        double x_a = stof(target_line.substr(30, 8));
+        double y_a = stof(target_line.substr(38, 8));
+        double z_a = stof(target_line.substr(46, 8));
+        for (std::string head_line : head_resatoms)
+        {
+            double x_b = stof(head_line.substr(30, 8));
+            double y_b = stof(head_line.substr(38, 8));
+            double z_b = stof(head_line.substr(46, 8));
+            double bond_dist = sqrt( pow(x_b - x_a, 2) + pow(y_b - y_a, 2) + pow(z_b - z_a, 2) );
+            if (bond_dist < min_dist)
+            {
+                min_dist = bond_dist;
+                min_dist_a_name = atomname;
+            }
+        }
+    }
+    return min_dist_a_name;
+}
+
+int GetSingleMolCharge(std::string single_mol_filename)
+{
+    // element = line.substr(76, 2);
+    // charge  = line.substr(78, 2);
+
+    int total_charge = 0;
+
+
+    return total_charge;
+}
+
+void ParsePDB(std::string input_file)
+{
+    std::vector<std::string> unknown_residues = {};
+    std::string def_chain_id = "A";
+    std::vector<std::vector<std::string>> molecule_chunks = PDBFile_to_Molecule_Sections(input_file);
+
+    // for each molecule chunk, identify unknown pieces.
+    for (unsigned int i = 0; i < molecule_chunks.size(); i ++)
+    {
+        std::vector<std::string> residue_keys = GetReskeysFromMolecule(molecule_chunks[i], def_chain_id);
+        SequenceMolecule(residue_keys, i+1);
+        bool isprotein = is_mostly_protein(residue_keys);
+        bool isnucleic = is_mostly_nucleic(residue_keys);
+        bool issingle  = (residue_keys.size() == 1);
+        for (std::string reskey : residue_keys)
+        {   
+            if (is_unrecognized_molecule(reskey))
+            {
+                std::cout << "Unrecognized residue: " << reskey << std::endl;
+                // Create single_molecule pdb for autoparams
+                std::string head_atom = get_head_connection(molecule_chunks[i],reskey);
+                std::string tail_atom = get_tail_connection(molecule_chunks[i],reskey);
+                std::string single_mol_filename = MakeSingleMoleculePDB(molecule_chunks[i], reskey, def_chain_id, head_atom, tail_atom);
+                int single_mol_charge = GetSingleMolCharge(single_mol_filename);
+                // Create task for AGIMUS
+                    // if residue_keys.size() > 1, get head/tail atoms from molecule chunk (identify forward and backward residues, then scan atoms for distances to be bonded)
+                    // attempt to calculate total charge of molecule.
+                
+                std::string resname = reskey.substr(reskey.find_last_of('.')+1,reskey.size() - reskey.find_last_of('.') - 1);
+                std::stringstream task;
+                task.str("");
+                task << "AUTOPARAMS " << single_mol_filename << " " << resname << " ";
+                if (isprotein)
+                {
+                    task << "PROTEIN ";
+                }
+                else if (isnucleic)
+                {
+                    task << "NUCLEIC ";
+                }
+                else
+                {
+                    task << "UNKNOWNTYPE ";
+                }
+                if (issingle)
+                {
+                    task << "NOCONNECT ";
+                }
+                else
+                {
+                    //get head and tail atoms from connecting residues
+                    
+                    if (head_atom != "")
+                    {
+                        task << "HEADATOM " << head_atom << " DUMMY HDAH " ;
+                    }
+                    if (tail_atom != "")
+                    {
+                        task << "TAILATOM " << tail_atom << " DUMMY HDAT ";
+                    }
+                }
+                std::cout << "AGIMUS TASK CREATED:" << std::endl << task.str() << std::endl;
+            }
+        }
     }
 }
 
