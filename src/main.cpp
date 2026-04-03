@@ -1,6 +1,7 @@
 #include "utilities.h"
 #include "jobsettings.h"
 #include "fileparsers.h"
+#include "chemistry.h"
 
 // First, identify type of input file
 // - PDB:  identify proteins, nucleics, substrates, etc.

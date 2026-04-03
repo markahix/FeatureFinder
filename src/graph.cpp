@@ -64,7 +64,7 @@ void GraphNetwork::AddEdge(int node1, int node2, double weight)
 
 void GraphNetwork::RemoveNode(int index)
 {
-    for (int i=0; i < node_indices.size(); i++)
+    for (unsigned int i=0; i < node_indices.size(); i++)
     {
         if (node_indices[i] == index)
         {
@@ -73,7 +73,7 @@ void GraphNetwork::RemoveNode(int index)
         }
     }
     std::vector<std::vector<int>> edge_pairs = {};
-    for (int i = 0; i < edges.size(); i++)
+    for (unsigned int i = 0; i < edges.size(); i++)
     {
         if ((edges[i].node1 == index) || (edges[i].node2 == index))
         {
@@ -100,7 +100,7 @@ void GraphNetwork::RemoveEdge(int node1, int node2)
         idx_a = node2;
         idx_b = node1;
     }
-    for (int i = 0; i < edges.size(); i++)
+    for (unsigned int i = 0; i < edges.size(); i++)
     {
         if ((edges[i].node1 == idx_a) && (edges[i].node2 == idx_b))
         {
@@ -124,7 +124,7 @@ double GraphNetwork::GetEdgeWeight(int node1, int node2)
         idx_a = node2;
         idx_b = node1;
     }
-    for (int i = 0; i < edges.size(); i++)
+    for (unsigned int i = 0; i < edges.size(); i++)
     {
         if ((edges[i].node1 == idx_a) && (edges[i].node2 == idx_b))
         {
@@ -140,7 +140,7 @@ std::string GraphNetwork::PrintGraph()
     buffer.str("");
     buffer << "Graph contains " << node_indices.size() << " nodes and " << edges.size() << " edges." << std::endl << std::endl;
     buffer << "Nodes: " << std::endl;
-    for (int i = 0; i < node_indices.size(); i++)
+    for (unsigned int i = 0; i < node_indices.size(); i++)
     {
         buffer << node_indices[i] << ", ";
         if (i%10 == 9)

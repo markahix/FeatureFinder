@@ -3,292 +3,295 @@
 #include "graph.h"
 
 // PDBAtom Functions
-PDBAtom::PDBAtom(std::string line)
-{
-    index = atoi(line.substr(6,5).c_str());
-    atom_name = line.substr(12,4);
-    residue_name = line.substr(17,3);
-    chain_id = line.substr(21,1);
-    if (chain_id == " ")
-    {
-        chain_id = "A";
-    }
-    residue_number = atoi(line.substr(22,4).c_str());
-    x = atof(line.substr(30,8).c_str());
-    y = atof(line.substr(38,8).c_str());
-    z = atof(line.substr(46,8).c_str());
-    element = line.substr(76,2);
-    charge = 0;
-    if (line.substr(78,2).find_first_not_of(' ') != std::string::npos)
-    {
-        charge = atoi(line.substr(78,2).c_str());
-    }
-}
-PDBAtom::~PDBAtom()
-{
+// PDBAtom::PDBAtom(std::string line)
+// {
+//     index = atoi(line.substr(6,5).c_str());
+//     atom_name = line.substr(12,4);
+//     residue_name = line.substr(17,3);
+//     chain_id = line.substr(21,1);
+//     if (chain_id == " ")
+//     {
+//         chain_id = "A";
+//     }
+//     residue_number = atoi(line.substr(22,4).c_str());
+//     x = atof(line.substr(30,8).c_str());
+//     y = atof(line.substr(38,8).c_str());
+//     z = atof(line.substr(46,8).c_str());
+//     element = line.substr(76,2);
+//     charge = 0;
+//     if (line.substr(78,2).find_first_not_of(' ') != std::string::npos)
+//     {
+//         charge = atoi(line.substr(78,2).c_str());
+//     }
+// }
+// PDBAtom::~PDBAtom()
+// {
 
-}
-void PDBAtom::set_index(int idx)
-{
-    index = idx;
-}
-void PDBAtom::set_atom_name(std::string aname)
-{
-    atom_name = aname;
-}
-void PDBAtom::set_residue_name(std::string rname)
-{
-    residue_name = rname;
-}
-void PDBAtom::set_chain_id(std::string chid)
-{
-    chain_id = chid;
-}
-void PDBAtom::set_residue_number(int rnum)
-{
-    residue_number = rnum;
-}
-void PDBAtom::set_xyz(double newx, double newy, double newz)
-{
-    x = newx;
-    y = newy;
-    z = newz;
-}
-void PDBAtom::set_element(std::string new_element)
-{
-    element = new_element;
-}
-void PDBAtom::set_charge(int new_charge)
-{
-    charge = new_charge;
-}
-std::string PDBAtom::get_atom_name()
-{
-    return atom_name;
-}
-//PDBResidue Functions
+// }
+// void PDBAtom::set_index(int idx)
+// {
+//     index = idx;
+// }
+// void PDBAtom::set_atom_name(std::string aname)
+// {
+//     atom_name = aname;
+// }
+// void PDBAtom::set_residue_name(std::string rname)
+// {
+//     residue_name = rname;
+// }
+// void PDBAtom::set_chain_id(std::string chid)
+// {
+//     chain_id = chid;
+// }
+// void PDBAtom::set_residue_number(int rnum)
+// {
+//     residue_number = rnum;
+// }
+// void PDBAtom::set_xyz(double newx, double newy, double newz)
+// {
+//     x = newx;
+//     y = newy;
+//     z = newz;
+// }
+// void PDBAtom::set_element(std::string new_element)
+// {
+//     element = new_element;
+// }
+// void PDBAtom::set_charge(int new_charge)
+// {
+//     charge = new_charge;
+// }
+// std::string PDBAtom::get_atom_name()
+// {
+//     return atom_name;
+// }
+// //PDBResidue Functions
 
-void PDBResidue::AddAtom(std::string line)
-{
-    atoms.push_back(PDBAtom(line));
-}
-void PDBResidue::CheckForErrors()
-{   
-    // Check for unique atom names.
-    std::vector<std::string> tmp_atom_names = {};
-    for (unsigned int i = 0;i < atoms.size(); i++)
-    {
-        tmp_atom_names.push_back(atoms[i].get_atom_name());
-    }
-    std::set<std::string> unique_names(tmp_atom_names.begin(), tmp_atom_names.end());
-    if (unique_names.size() != tmp_atom_names.size())
-    {
-        std::cout << "ERROR: Residue " << resid << " may have non-unique atom names." << std::endl;
-    }    
-}
+// void PDBResidue::AddAtom(std::string line)
+// {
+//     atoms.push_back(PDBAtom(line));
+// }
+// void PDBResidue::CheckForErrors()
+// {   
+//     // Check for unique atom names.
+//     std::vector<std::string> tmp_atom_names = {};
+//     for (unsigned int i = 0;i < atoms.size(); i++)
+//     {
+//         tmp_atom_names.push_back(atoms[i].get_atom_name());
+//     }
+//     std::set<std::string> unique_names(tmp_atom_names.begin(), tmp_atom_names.end());
+//     if (unique_names.size() != tmp_atom_names.size())
+//     {
+//         std::cout << "ERROR: Residue " << resid << " may have non-unique atom names." << std::endl;
+//     }    
+// }
 
-void PDBResidue::set_resid(int new_resid)
-{
-    resid = new_resid;
-    for (unsigned int i = 0;i < atoms.size(); i++)
-    {
-        atoms[i].set_residue_number(resid);
-    }
-}
-void PDBResidue::set_resname(std::string new_resname)
-{
-    resname = new_resname;
-    for (unsigned int i = 0;i < atoms.size(); i++)
-    {
-        atoms[i].set_residue_name(resname);
-    }
-}
-void PDBResidue::set_chain_id(std::string new_chid)
-{
-    chain_id = new_chid;
-    for (unsigned int i = 0;i < atoms.size(); i++)
-    {
-        atoms[i].set_chain_id(chain_id);
-    }
-}
+// void PDBResidue::set_resid(int new_resid)
+// {
+//     resid = new_resid;
+//     for (unsigned int i = 0;i < atoms.size(); i++)
+//     {
+//         atoms[i].set_residue_number(resid);
+//     }
+// }
+// void PDBResidue::set_resname(std::string new_resname)
+// {
+//     resname = new_resname;
+//     for (unsigned int i = 0;i < atoms.size(); i++)
+//     {
+//         atoms[i].set_residue_name(resname);
+//     }
+// }
+// void PDBResidue::set_chain_id(std::string new_chid)
+// {
+//     chain_id = new_chid;
+//     for (unsigned int i = 0;i < atoms.size(); i++)
+//     {
+//         atoms[i].set_chain_id(chain_id);
+//     }
+// }
 
-PDBResidue::PDBResidue(int id, std::string name, std::string chain)
-{
-    atoms = {};
-    resid = id;
-    resname = name;
-    chain_id = chain;
-}
-PDBResidue::~PDBResidue()
-{
+// PDBResidue::PDBResidue(int id, std::string name, std::string chain)
+// {
+//     atoms = {};
+//     resid = id;
+//     resname = name;
+//     chain_id = chain;
+// }
+// PDBResidue::~PDBResidue()
+// {
 
-}
+// }
 
-// CONSTRUCTOR
-PDB::PDB(std::string filename)
-{
-    pdb_file = filename;
-    molecule_ranges = {};
-}
+// // CONSTRUCTOR
+// PDB::PDB(std::string filename)
+// {
+//     pdb_file = filename;
+//     molecule_ranges = {};
+// }
 
-// DESTRUCTOR
-PDB::~PDB()
-{
-}
+// // DESTRUCTOR
+// PDB::~PDB()
+// {
+// }
 
-void PDB::ReadPDB()
-{
-    std::string line;
-    std::ifstream ifile(pdb_file,std::ios::in);
-    if (!ifile.is_open())
-    {
-        std::cout << "Unable to open " << pdb_file << ". Aborting. " << std::endl;
-        return;
-    }
+// void PDB::ReadPDB()
+// {
+//     std::string line;
+//     std::ifstream ifile(pdb_file,std::ios::in);
+//     if (!ifile.is_open())
+//     {
+//         std::cout << "Unable to open " << pdb_file << ". Aborting. " << std::endl;
+//         return;
+//     }
 
-    std::stringstream current_molecule_range;
-    int current_residue = 0;
-    int start_molecule = 0;
-    bool first_atom_found = false;
+//     std::stringstream current_molecule_range;
+//     int current_residue = 0;
+//     int start_molecule = 0;
+//     bool first_atom_found = false;
 
-    while (getline(ifile,line))
-    {   
-        if (line.find("END") != std::string::npos)
-        {   // Reached the end of the PDB's useful information, bail out.
-            break;
-        }
-        if (line.find("TER") != std::string::npos)
-        {
-            // End of molecule, close the current molecule and prepare another molecule.
-            current_molecule_range.str("");
-            current_molecule_range << ":" << start_molecule;
-            if (current_residue != start_molecule)
-            {
-                current_molecule_range << "-" << current_residue;
-            }
-            molecule_ranges.push_back(current_molecule_range.str());
-            first_atom_found = false;
+//     while (getline(ifile,line))
+//     {   
+//         if (line.find("END") != std::string::npos)
+//         {   // Reached the end of the PDB's useful information, bail out.
+//             break;
+//         }
+//         if (line.find("TER") != std::string::npos)
+//         {
+//             // End of molecule, close the current molecule and prepare another molecule.
+//             current_molecule_range.str("");
+//             current_molecule_range << ":" << start_molecule;
+//             if (current_residue != start_molecule)
+//             {
+//                 current_molecule_range << "-" << current_residue;
+//             }
+//             molecule_ranges.push_back(current_molecule_range.str());
+//             first_atom_found = false;
             
-            continue;
-        }
-        if ((line.find("ATOM") == std::string::npos) && (line.find("HETATM") == std::string::npos) )
-        {   // If line is not an atom-containing line, continue.
-            continue;
-        }
-        current_residue = atoi(line.substr(22,4).c_str());
-        if (!first_atom_found)
-        {
-            start_molecule = atoi(line.substr(22,4).c_str());
-            first_atom_found = true;
-        }
-    }
-}
-PDBMolecule::PDBMolecule(int number)
-{
+//             continue;
+//         }
+//         if ((line.find("ATOM") == std::string::npos) && (line.find("HETATM") == std::string::npos) )
+//         {   // If line is not an atom-containing line, continue.
+//             continue;
+//         }
+//         current_residue = atoi(line.substr(22,4).c_str());
+//         if (!first_atom_found)
+//         {
+//             start_molecule = atoi(line.substr(22,4).c_str());
+//             first_atom_found = true;
+//         }
+//     }
+// }
+// PDBMolecule::PDBMolecule(int number)
+// {
 
-}
+// }
 
-PDBMolecule::~PDBMolecule()
-{
+// PDBMolecule::~PDBMolecule()
+// {
 
-}
+// }
 
-void parse_pdb_line(std::string line, Molecule &molecule)
-{
-/*
-ATOM      1  N   HIS A   1      49.668  24.248  10.436  1.00 25.00           N
-......  ATOM/HETATM flag(1-6)
-      ..... atom number (7-11)
-           .
-            .... atom name (13-16)
-                . alternate location indicator
-                 ... residue name (18-20)
-                    . 
-                     . chain identifier (22)
-                      .... residue sequence number (23-26)
-                          . code for insertion of residues
-                           ...
-                              ........ x coords (31-38)
-                                      ........ y coords (39-46)
-                                              ........ z coords (47-54)
-                                                      ...... occupancy (55-60)
-                                                            ...... temperature factor (61-66)
-                                                                  .......
-                                                                         ... segment identifier (73-76)
-                                                                            .. elemental symbol (77-78)
-                                                                              .. formal charge (79-80)
-*/
-    std::string atom_number  = line.substr(6 , 5);
-    std::string atom_name    = line.substr(12, 4);
-    std::string residue_name = line.substr(17, 3);
-    std::string chain_id     = line.substr(21, 1);
-    std::string residue_num  = line.substr(22, 4);
-    std::string x_coords     = line.substr(30, 8);
-    std::string y_coords     = line.substr(38, 8);
-    std::string z_coords     = line.substr(46, 8);
-    std::string occupancy    = line.substr(54, 6);
-    std::string temperature  = line.substr(60, 6);
-    std::string segment_id   = line.substr(72, 4);
-    std::string element      = line.substr(76, 2);
-    std::string charge       = line.substr(78, 2);
-    // Assume "HETATM" or "ATOM  " lines only.
-    // Parse line according to standard PDB formatting
-    // If values don't align, throw an error and quit.
-    // lines MUST have:  Residue name, residue number, atom name, x, y, z, element.
-    // Useful:  chainID as well.
-    bool BAD_DATA = false;
-    if (is_empty(residue_name))
-    {
-        BAD_DATA = true;
-    }
-    if (is_empty(residue_num))
-    {
-        BAD_DATA = true;
-    }
-    if (is_empty(atom_name))
-    {
-        BAD_DATA = true;
-    }
-    if (is_empty(x_coords))
-    {
-        BAD_DATA = true;
-    }
-    if (is_empty(y_coords))
-    {
-        BAD_DATA = true;
-    }
-    if (is_empty(z_coords))
-    {
-        BAD_DATA = true;
-    }
-    if (is_empty(element))
-    {
-        BAD_DATA = true;
-    }
-    if (BAD_DATA)
-    {
-        error_log("Unable to parse line: " + line, 1);
-    }
+// void parse_pdb_line(std::string line, Molecule &molecule)
+// {
+// /*
+// ATOM      1  N   HIS A   1      49.668  24.248  10.436  1.00 25.00           N
+// ......  ATOM/HETATM flag(1-6)
+//       ..... atom number (7-11)
+//            .
+//             .... atom name (13-16)
+//                 . alternate location indicator
+//                  ... residue name (18-20)
+//                     . 
+//                      . chain identifier (22)
+//                       .... residue sequence number (23-26)
+//                           . code for insertion of residues
+//                            ...
+//                               ........ x coords (31-38)
+//                                       ........ y coords (39-46)
+//                                               ........ z coords (47-54)
+//                                                       ...... occupancy (55-60)
+//                                                             ...... temperature factor (61-66)
+//                                                                   .......
+//                                                                          ... segment identifier (73-76)
+//                                                                             .. elemental symbol (77-78)
+//                                                                               .. formal charge (79-80)
+// */
+//     std::string atom_number  = line.substr(6 , 5);
+//     std::string atom_name    = line.substr(12, 4);
+//     std::string residue_name = line.substr(17, 3);
+//     std::string chain_id     = line.substr(21, 1);
+//     std::string residue_num  = line.substr(22, 4);
+//     std::string x_coords     = line.substr(30, 8);
+//     std::string y_coords     = line.substr(38, 8);
+//     std::string z_coords     = line.substr(46, 8);
+//     std::string occupancy    = line.substr(54, 6);
+//     std::string temperature  = line.substr(60, 6);
+//     std::string segment_id   = line.substr(72, 4);
+//     std::string element      = line.substr(76, 2);
+//     std::string charge       = line.substr(78, 2);
+//     // Assume "HETATM" or "ATOM  " lines only.
+//     // Parse line according to standard PDB formatting
+//     // If values don't align, throw an error and quit.
+//     // lines MUST have:  Residue name, residue number, atom name, x, y, z, element.
+//     // Useful:  chainID as well.
+//     bool BAD_DATA = false;
+//     if (is_empty(residue_name))
+//     {
+//         BAD_DATA = true;
+//     }
+//     if (is_empty(residue_num))
+//     {
+//         BAD_DATA = true;
+//     }
+//     if (is_empty(atom_name))
+//     {
+//         BAD_DATA = true;
+//     }
+//     if (is_empty(x_coords))
+//     {
+//         BAD_DATA = true;
+//     }
+//     if (is_empty(y_coords))
+//     {
+//         BAD_DATA = true;
+//     }
+//     if (is_empty(z_coords))
+//     {
+//         BAD_DATA = true;
+//     }
+//     if (is_empty(element))
+//     {
+//         BAD_DATA = true;
+//     }
+//     if (BAD_DATA)
+//     {
+//         error_log("Unable to parse line: " + line, 1);
+//     }
 
-    if (is_empty(chain_id))
-    {
-        chain_id = "A";
-    }
-    // If we use "chainID.resnum(leading zeros?).resname" as a unique identifier, then the Molecule level can have this as a map instead of a vector, and then we need only store the head, tail, and atoms vector...
-    // Generate Residue Key
-    std::stringstream buffer;
-    buffer.str("");
-    buffer << chain_id << "." << std::setw(4) << std::setfill('0') << stoi(residue_num) << "." << residue_name;
-    std::string reskey = buffer.str();
-    if (molecule.residues.count(reskey) == 0)
-    {
-        molecule.residues[reskey] = {};
-    }
-    Atom new_atom {stoi(atom_number), stof(x_coords), stof(y_coords), stof(z_coords), get_atomic_number(element)};
-    molecule.residues[reskey].atoms.push_back(new_atom);
-}
+//     if (is_empty(chain_id))
+//     {
+//         chain_id = "A";
+//     }
+//     // If we use "chainID.resnum(leading zeros?).resname" as a unique identifier, then the Molecule level can have this as a map instead of a vector, and then we need only store the head, tail, and atoms vector...
+//     // Generate Residue Key
+//     std::stringstream buffer;
+//     buffer.str("");
+//     buffer << chain_id << "." << std::setw(4) << std::setfill('0') << stoi(residue_num) << "." << residue_name;
+//     std::string reskey = buffer.str();
+//     if (molecule.residues.count(reskey) == 0)
+//     {
+//         molecule.residues[reskey] = {};
+//     }
+//     Atom new_atom {stoi(atom_number), stof(x_coords), stof(y_coords), stof(z_coords), get_atomic_number(element)};
+//     molecule.residues[reskey].atoms.push_back(new_atom);
+// }
+
+
 //OneLetterAminoAcids
-std::map<std::string,std::string> OLAA =   {{"ALA","A"},{"CYS","C"},{"CYM","C"},{"CYX","C"},{"ASP","D"},{"ASH","D"},{"GLU","E"},
+std::map<std::string,std::string> OLAA =   {{"ALA","A"},{"CYS","C"},{"CYM","C"},{"CYX","C"},{"ASP","D"},{"ASH","D"},
+{"GLU","E"},{"GL4","E"},{"AS4","D"},{"CRO","___"},
                                                 {"GLH","E"},{"PHE","F"},{"GLY","G"},{"HIS","H"},{"HID","H"},{"HIE","H"},{"HIP","H"},
                                                 {"ILE","I"},{"LYS","K"},{"LEU","L"},{"MET","M"},{"ASN","N"},{"PRO","P"},{"GLN","Q"},
                                                 {"ARG","R"},{"SER","S"},{"THR","T"},{"VAL","V"},{"TRP","W"},{"TYR","Y"}};
@@ -496,6 +499,12 @@ void Protein_Sequence_to_FASTA(std::vector<std::string> residue_keys, int molecu
         else
         {
             fasta << OLAA[resname];
+        }
+
+        if (resname == "CRO")
+        {
+            n_res++;
+            n_res++;
         }
         
         if (n_res%10 == 0)
@@ -713,18 +722,15 @@ std::vector<Atom> GetAtomsFromMol(std::vector<std::string> mol_chunk)
     return atoms;
 }
 
-
-
 GraphNetwork GetAtomGraphPDB(std::vector<std::string> mol_chunk)
 {
     std::vector<Atom> atoms = GetAtomsFromMol(mol_chunk);
     std::vector<Bond> bonds = GetBondsFromAtoms(atoms);
-    std::vector<Angle> angles = {};
-    std::vector<Torsion> torsions = {};
-    std::vector<Dihedral> dihedrals = {};
+    std::vector<Angle> angles = GetAnglesFromBonds(atoms, bonds);
+    std::vector<Torsion> torsions = GetTorsionsFromAngles(atoms, bonds, angles);
+    std::vector<Dihedral> dihedrals = GetDihedralsFromAngles(atoms, bonds, angles);
+    std::vector<Ring> rings = GetRingsFromAll(atoms, bonds, angles, torsions);
     GraphNetwork mol_graph;
-
-
 }
 
 std::string get_head_connected_to(std::vector<std::string> mol_chunk, std::string reskey)
@@ -1003,7 +1009,6 @@ int GetSingleMolCharge(std::string single_mol_filename)
 {
     // element = line.substr(76, 2);
     // charge  = line.substr(78, 2);
-
     int total_charge = 0;
 
 
@@ -1028,6 +1033,12 @@ void ParsePDB(std::string input_file)
         {   
             if (is_unrecognized_molecule(reskey))
             {
+                std::string tmp_resname = reskey.substr(reskey.find_last_of('.')+1,reskey.size() - reskey.find_last_of('.') - 1);
+                if (std::find(unknown_residues.begin(),unknown_residues.end(),tmp_resname) != unknown_residues.end())
+                {
+                    continue;
+                }
+                unknown_residues.push_back(tmp_resname);
                 std::cout << "Unrecognized residue: " << reskey << std::endl;
                 // Create single_molecule pdb for autoparams
                 std::string head_atom = get_head_connection(molecule_chunks[i],reskey);
