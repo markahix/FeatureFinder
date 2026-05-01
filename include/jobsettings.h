@@ -12,6 +12,8 @@ class JobSettings
         // Class Variables
         fs::path input_file_name;
         bool debug_output;
+        bool from_AGIMUS;
+        fs::path AGIMUS_tracker_path;
 
         // Class Functions
         JobSettings(int argc, char **argv);

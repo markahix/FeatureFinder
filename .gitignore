@@ -1,7 +1,7 @@
 *.pdb
 obj/
 bin/
-tests/
+test_data/
 *.fasta
 *.x
 .vscode/

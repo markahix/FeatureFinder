@@ -3,6 +3,8 @@ JobSettings::JobSettings(int argc, char** argv)
 {
     input_file_name = "file.pdb";
     debug_output = false;
+    from_AGIMUS = false;
+    AGIMUS_tracker_path = "./.AGIMUStracker";
     ParseArgs(argc, argv);
 }
 
@@ -31,6 +33,14 @@ void JobSettings::ParseArgs(int argc, char** argv)
             continue;
         }
 
+        if (curr_flag == "--fromAGIMUS")
+        {
+            from_AGIMUS = true;
+            AGIMUS_tracker_path = fs::absolute(argv[i+1]);
+            i+=2;
+            continue;
+        }
+        
         else
         {
             std::cout << "Unrecognized keyword argument: " << argv[i] << std::endl;

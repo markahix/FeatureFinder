@@ -1,6 +1,8 @@
 #include "pdb.h"
 #include "chemistry.h"
 #include "graph.h"
+#include "singlemolecule.h"
+#include "jobsettings.h"
 
 // PDBAtom Functions
 // PDBAtom::PDBAtom(std::string line)
@@ -1015,12 +1017,26 @@ int GetSingleMolCharge(std::string single_mol_filename)
     return total_charge;
 }
 
-void ParsePDB(std::string input_file)
+void ParsePDB(std::string input_file, JobSettings* jobsettings)
 {
     std::vector<std::string> unknown_residues = {};
     std::string def_chain_id = "A";
     std::vector<std::vector<std::string>> molecule_chunks = PDBFile_to_Molecule_Sections(input_file);
-
+    if (molecule_chunks.size() == 2)
+    {
+        // single molecule identified in the provided structure.  Processing for functional groups.
+        std::vector<std::string> ReturningAGIMUSLines = IdentifyFunctionalGroups(input_file);
+        // Now we have the functional groups as AGIMUS lines, we should put them in an AGIMUS tracker if this is an agimus job.
+        if (jobsettings->from_AGIMUS)
+        {
+            std::ofstream ofile(jobsettings->AGIMUS_tracker_path,std::ios::app);
+            for (std::string AGIMUS_line : ReturningAGIMUSLines)
+            {
+                ofile << AGIMUS_line << std::endl;
+            }
+            ofile.close();
+        }
+    }
     // for each molecule chunk, identify unknown pieces.
     for (unsigned int i = 0; i < molecule_chunks.size(); i ++)
     {

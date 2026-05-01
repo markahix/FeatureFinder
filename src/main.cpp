@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     }
     
     // identify file type (prmtop, pdb, xyz, etc.)   
-    MolecularFile mol_file(settings.input_file_name);
+    MolecularFile mol_file(settings.input_file_name, settings);
     mol_file.ParseFile();
 
     // Obtain feature types to identify (substructures of small molecules vs. proteins/nucleics/etc.)
