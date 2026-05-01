@@ -4,6 +4,16 @@
 #include "utilities.h"
 #include "jobsettings.h"
 
+class Molecule
+{
+    public:
+        Molecule(std::vector<std::string> mol_atom_names, std::vector<std::pair<int,int>> mol_edges);
+        ~Molecule();
+    private:
+        std::vector<std::string> atom_names;
+        std::vector<std::pair<int,int>> edges;
+};
+
 class MolecularFile
 {
     private:
@@ -17,4 +27,14 @@ class MolecularFile
         void ParseFile();
 };
 
+/*
+PDB Parser --> Molecule Format
+MOL2 Parser --> Molecule Format
+PRMTOP Parser --> Molecule Format
+XYZ Parser --> Molecule Format
+*/
+// Molecule PDBtoMolecule(std::string filename, std::vector<std::string> &mol_atom_names, std::vector<std::pair<int,int>> &mol_edges);
+// Molecule MOL2toMolecule(std::string filename, std::vector<std::string> &mol_atom_names, std::vector<std::pair<int,int>> &mol_edges);
+// Molecule PRMTOPtoMolecule(std::string filename, std::vector<std::string> &mol_atom_names, std::vector<std::pair<int,int>> &mol_edges);
+// Molecule XYZtoMolecule(std::string filename, std::vector<std::string> &mol_atom_names, std::vector<std::pair<int,int>> &mol_edges);
 #endif
