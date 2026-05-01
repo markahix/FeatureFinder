@@ -3,7 +3,8 @@
 
 #include "utilities.h"
 #include "chemistry.h"
-void ParsePDB(std::string input_file);
+#include "jobsettings.h"
+void ParsePDB(std::string input_file, JobSettings* jobsettings);
 
 /*
 PDB can be divided up into several pieces:

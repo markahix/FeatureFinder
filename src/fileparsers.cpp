@@ -33,11 +33,12 @@ If I can get a graph comparison protocol established, then I can just check an i
 */
 
 
-MolecularFile::MolecularFile(std::string filename)
+MolecularFile::MolecularFile(std::string filename, JobSettings &settings)
 {
     input_file = filename;
     filetype = fs::absolute(input_file).extension();
     std::cout << filetype << std::endl;
+    settings_ptr = &settings;
 }
 
 MolecularFile::~MolecularFile()
@@ -50,7 +51,7 @@ void MolecularFile::ParseFile()
     if (filetype == ".pdb")
     {
         normal_log("Given input file is a PDB.");
-        ParsePDB(input_file);
+        ParsePDB(input_file, settings_ptr);
         return;
     }   
     // if (filetype == ".xyz")

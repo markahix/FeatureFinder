@@ -1,15 +1,42 @@
 #include "chemistry.h"
-
-const std::vector<std::string> atomicSymbols = { "NULL",
-    "H",                                                                                                  "HE", 
-    "LI", "BE",                                                             "B",  "C",  "N",  "O",  "F",  "NE",
-    "NA", "MG",                                                             "AL", "SI", "P",  "S",  "CL", "AR", 
-    "K",  "CA", "SC", "TI", "V",  "CR", "MN", "FE", "CO", "NI", "CU", "ZN", "GA", "GE", "AS", "SE", "BR", "KR", 
-    "RB", "SR",  "Y", "ZR", "NB", "MO", "TC", "RU", "RH", "PD", "AG", "CD", "IN", "SN", "SB", "TE", "I",  "XE", 
-    "CS", "BA", "LA", "CE", "PR", "ND", "PM", "SM", "EU", "GD", "TB", "DY", "HO", "ER", "TM", "YB", "LU", "HF", "TA", "W",  "RE", "OS", "IR", "PT", "AU", "HG", "TL", "PB", "BI", "PO", "AT", "RN", 
-    "FR", "RA", "AC", "TH", "PA", "U",  "NP", "PU", "AM", "CM", "BK", "CF", "ES", "FM", "MD", "NO", "LR", "RF", "DB", "SG", "BH", "HS", "MT", "DS", "RG", "CN", "NH", "FL", "MC", "LV", "TS", "OG"
+#include <vector>
+const std::vector<std::string> atomicSymbols = { "RR", // keeps symbol index aligned with atomic numbers.
+    "H" ,                                                                                                 "HE", 
+    "LI", "BE",                                                             "B" , "C" , "N" , "O" , "F" , "NE",
+    "NA", "MG",                                                             "AL", "SI", "P" , "S" , "CL", "AR", 
+    "K" , "CA", "SC", "TI", "V" , "CR", "MN", "FE", "CO", "NI", "CU", "ZN", "GA", "GE", "AS", "SE", "BR", "KR", 
+    "RB", "SR", "Y" , "ZR", "NB", "MO", "TC", "RU", "RH", "PD", "AG", "CD", "IN", "SN", "SB", "TE", "I" , "XE", 
+    "CS", "BA", "LA", "CE", "PR", "ND", "PM", "SM", "EU", "GD", "TB", "DY", "HO", "ER", "TM", "YB", "LU", "HF", "TA", "W" , "RE", "OS", "IR", "PT", "AU", "HG", "TL", "PB", "BI", "PO", "AT", "RN", 
+    "FR", "RA", "AC", "TH", "PA", "U" , "NP", "PU", "AM", "CM", "BK", "CF", "ES", "FM", "MD", "NO", "LR", "RF", "DB", "SG", "BH", "HS", "MT", "DS", "RG", "CN", "NH", "FL", "MC", "LV", "TS", "OG"
 };
-
+const std::vector<double> atomic_masses = {0.000, // NULL SPACE to align atomic number with mass index.
+      1.008,   4.003,   6.940,   9.012,  10.810,  12.011,  14.007,  15.999,  18.998,  20.180, // 1-10
+     22.990,  24.305,  26.982,  28.085,  30.974,  32.060,  35.450,  39.948,  39.098,  40.078, // 11-20
+     44.956,  47.867,  50.942,  51.996,  54.938,  55.845,  58.933,  58.693,  63.546,  65.380, // 21-30
+     69.723,  72.630,  74.922,  78.971,  79.904,  83.798,  85.468,  87.620,  88.906,  91.224, // 31-40
+     92.906,  95.950,  98.000, 101.070, 102.906, 106.420, 107.868, 112.414, 114.818, 118.710, // 41-50
+    121.760, 127.600, 126.904, 131.293, 132.905, 137.327, 138.905, 140.116, 140.908, 144.242, // 51-60
+    145.000, 150.360, 151.964, 157.250, 158.925, 162.500, 164.930, 167.259, 168.934, 173.045, // 61-70
+    174.967, 178.490, 180.948, 183.840, 186.207, 190.230, 192.217, 195.084, 196.967, 200.592, // 71-80
+    204.380, 207.200, 208.980, 209.000, 210.000, 222.000, 223.000, 226.000, 227.000, 232.038, // 81-90
+    231.036, 238.029, 237.000, 244.000, 243.000, 247.000, 247.000, 251.000, 252.000, 257.000, // 91-100
+    258.000, 259.000, 266.000, 267.000, 268.000, 269.000, 270.000, 269.000, 278.000, 281.000, // 100-110
+    282.000, 285.000, 286.000, 289.000, 290.000, 293.000, 294.000, 294.000                    // 111-118
+};
+const std::vector<double> covalent_radii = {  0.76, // included 0.00 element such that array indices align with atomic numbers.
+    0.31, 0.28, 1.28, 0.96, 0.84, 0.76, 0.71, 0.66, 0.57, 0.58,
+    1.66, 1.41, 1.21, 1.11, 1.07, 1.05, 1.02, 1.06, 2.03, 1.76,
+    1.70, 1.60, 1.53, 1.39, 1.39, 1.32, 1.26, 1.24, 1.21, 1.38,
+    1.22, 1.20, 1.19, 1.20, 1.20, 1.16, 2.20, 1.95, 1.90, 1.75,
+    1.64, 1.54, 1.47, 1.46, 1.42, 1.39, 1.45, 1.44, 1.41, 1.38,
+    1.35, 1.33, 1.33, 1.31, 2.44, 2.23, 2.01, 1.99, 1.98, 1.98,
+    1.96, 1.95, 1.93, 1.92, 1.92, 1.89, 1.90, 1.87, 1.86, 1.85,
+    1.85, 1.80, 1.78, 1.70, 1.62, 1.51, 1.44, 1.41, 1.36, 1.36,
+    1.33, 1.31, 1.29, 1.28, 1.27, 1.25, 2.60, 2.53, 2.21, 2.15,
+    2.06, 2.00, 1.96, 1.90, 1.87, 1.80, 1.80, 1.77, 1.74, 1.73,
+    1.72, 1.68, 1.65, 1.57, 1.49, 1.43, 1.41, 1.34, 1.29, 1.28,
+    1.21, 1.22, 1.20, 1.20, 1.20, 1.20, 1.20
+};
 const std::vector<double> vanDerWaalsRadii = {0.00,
     1.20, 1.40, 1.82, 1.53, 1.92, 1.70, 1.55, 1.52, 1.47, 1.54, // 1–10
     2.27, 1.73, 1.84, 2.10, 1.80, 1.80, 1.75, 1.88, 2.75, 2.31, // 11–20
@@ -24,52 +51,33 @@ const std::vector<double> vanDerWaalsRadii = {0.00,
     1.73, 1.76, 1.61, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  // 101–110
     0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0                // 111–118
 };
-
-#include <vector>
-
-const std::vector<double> covalent_radii = {  0.00, // included 0.00 element such that array indices align with atomic numbers.
-    0.31, 0.28, 1.28, 0.96, 0.84, 0.76, 0.71, 0.66, 0.57, 0.58,
-    1.66, 1.41, 1.21, 1.11, 1.07, 1.05, 1.02, 1.06, 2.03, 1.76,
-    1.70, 1.60, 1.53, 1.39, 1.39, 1.32, 1.26, 1.24, 1.21, 1.38,
-    1.22, 1.20, 1.19, 1.20, 1.20, 1.16, 2.20, 1.95, 1.90, 1.75,
-    1.64, 1.54, 1.47, 1.46, 1.42, 1.39, 1.45, 1.44, 1.41, 1.38,
-    1.35, 1.33, 1.33, 1.31, 2.44, 2.23, 2.01, 1.99, 1.98, 1.98,
-    1.96, 1.95, 1.93, 1.92, 1.92, 1.89, 1.90, 1.87, 1.86, 1.85,
-    1.85, 1.80, 1.78, 1.70, 1.62, 1.51, 1.44, 1.41, 1.36, 1.36,
-    1.33, 1.31, 1.29, 1.28, 1.27, 1.25, 2.60, 2.53, 2.21, 2.15,
-    2.06, 2.00, 1.96, 1.90, 1.87, 1.80, 1.80, 1.77, 1.74, 1.73,
-    1.72, 1.68, 1.65, 1.57, 1.49, 1.43, 1.41, 1.34, 1.29, 1.28,
-    1.21, 1.22, 1.20, 1.20, 1.20, 1.20, 1.20
-};
-
-
 int get_atomic_number(std::string symbol)
 {
-    for (unsigned int i = 0; i < atomicSymbols.size(); i++)
-    {
-        if (symbol == atomicSymbols[i])
-        {
-            return i;
-        }
-    }
-    return 0;
-}
-
-double get_vdw_radius(int atomic_number)
-{
-    return vanDerWaalsRadii[atomic_number];
-}
-double get_vdw_radius(std::string symbol)
-{
-    return vanDerWaalsRadii[get_atomic_number(symbol)];
-}
-double get_covalent_radius(int atomic_number)
-{
-    return covalent_radii[atomic_number];
+    return std::distance(atomicSymbols.begin(), std::find(atomicSymbols.begin(), atomicSymbols.end(), symbol));
 }
 double get_covalent_radius(std::string symbol)
 {
-    return covalent_radii[get_atomic_number(symbol)];
+    return covalent_radii[get_atomic_number(symbol)]*1.05;
+}
+double get_covalent_radius(int number)
+{
+    return covalent_radii[number]*1.05;
+}
+double get_vdw_radius(std::string symbol)
+{
+    return vanDerWaalsRadii[get_atomic_number(symbol)]*1.05;
+}
+double get_vdw_radius(int number)
+{
+    return vanDerWaalsRadii[number]*1.05;
+}
+double get_atomic_mass(std::string symbol)
+{
+    return atomic_masses[get_atomic_number(symbol)];
+}
+double get_atomic_mass(int number)
+{
+    return atomic_masses[number];
 }
 
 
